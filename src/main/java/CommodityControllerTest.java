@@ -1,3 +1,4 @@
+import application.BalootApplication;
 import controllers.CommoditiesController;
 import exceptions.NotExistentCommodity;
 import model.Commodity;
@@ -28,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @AutoConfigureMockMvc
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = CommoditiesController.class)
+@SpringBootTest(classes = BalootApplication.class)
 public class CommodityControllerTest {
 
     @Autowired
