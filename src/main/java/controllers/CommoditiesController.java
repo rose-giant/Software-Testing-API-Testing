@@ -31,6 +31,12 @@ public class CommoditiesController {
     public ResponseEntity<Commodity> getCommodity(@PathVariable String id) {
         try {
             Commodity commodity = baloot.getCommodityById(id);
+
+            //modified by rose-giant
+            if(commodity == null) {
+                return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            }
+
             return new ResponseEntity<>(commodity, HttpStatus.OK);
         } catch (NotExistentCommodity e) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
