@@ -17,17 +17,18 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import service.Baloot;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = CommoditiesController.class)
-//@WebMvcTest(value = CommoditiesController.class)
 public class CommodityControllerTest {
 
     @Autowired
@@ -36,7 +37,6 @@ public class CommodityControllerTest {
     @MockBean
     public Baloot mockBaloot;
 
-    @MockBean
     private CommoditiesController mockCommodityController = new CommoditiesController();
 
     private Commodity mockCommodity = new Commodity();
@@ -78,7 +78,8 @@ public class CommodityControllerTest {
 
         mockCommodityList.add(mockCommodity);
         when(mockBaloot.getCommodities()).thenReturn(mockCommodityList);
-        mockMvc.perform(get("/commodities")).andExpect(status().isOk());
+        mockMvc.perform(get(apiUrl)).andDo(MockMvcResultHandlers.print()).
+                andExpect(status().isOk());
     }
 
 }
