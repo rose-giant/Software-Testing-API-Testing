@@ -1,13 +1,9 @@
 package controllers;
 
 import application.BalootApplication;
-import controllers.CommoditiesController;
 import exceptions.NotExistentCommodity;
 import model.Comment;
 import model.Commodity;
-import org.hamcrest.Matchers;
-import org.json.JSONArray;
-import org.junit.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,12 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-
-import static org.springframework.test.web.servlet.MockMvcExtensionsKt.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-
-import org.springframework.test.web.servlet.ResultMatcher;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import service.Baloot;
 import java.util.ArrayList;
@@ -45,15 +36,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = BalootApplication.class)
 public class CommodityControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-    @MockBean
-    public Baloot mockBaloot;
-
+   @Autowired
+   private MockMvc mockMvc;
+   @MockBean
+   public Baloot mockBaloot;
+   public String EXISTING_COMMODITY_ID = "1";
    public String responseString = "[{\"id\":\"1\",\"name\":\"iPhone\",\"providerId\":\"1\",\"price\":100,\"categories\":[\"phone\",\"tech\"],\"rating\":9.8,\"inStock\":100,\"image\":\"\",\"userRate\":{},\"initRate\":0.0},{\"id\":\"2\",\"name\":\"Galaxy\",\"providerId\":\"2\",\"price\":100,\"categories\":[\"phone\",\"tech\"],\"rating\":8.8,\"inStock\":100,\"image\":\"\",\"userRate\":{},\"initRate\":0.0}]";
 
-   public String commodityResponse1 = "{\"id\":\"1\",\"name\":\"iPhone\",\"providerId\":\"1\",\"price\":100,\"categories\":[\"phone\",\"tech\"],\"rating\":9.8,\"inStock\":100,\"image\":\"\",\"userRate\":{},\"initRate\":0.0}";
-   public String commodityResponse2 = "{\"id\":\"2\",\"name\":\"Galaxy\",\"providerId\":\"2\",\"price\":100,\"categories\":[\"phone\",\"tech\"],\"rating\":8.8,\"inStock\":100,\"image\":\"\",\"userRate\":{},\"initRate\":0.0}";
+   public String commodityResponse1 = "[{\"id\":\"1\",\"name\":\"iPhone\",\"providerId\":\"1\",\"price\":100,\"categories\":[\"phone\",\"tech\"],\"rating\":9.8,\"inStock\":100,\"image\":\"\",\"userRate\":{},\"initRate\":0.0}]";
+   public String commodityResponse2 = "[{\"id\":\"2\",\"name\":\"Galaxy\",\"providerId\":\"2\",\"price\":100,\"categories\":[\"phone\",\"tech\"],\"rating\":8.8,\"inStock\":100,\"image\":\"\",\"userRate\":{},\"initRate\":0.0}]";
    public ArrayList<String> commodityResponseArray = new ArrayList<>();
 
 
@@ -168,24 +159,38 @@ public class CommodityControllerTest {
     }
 
     //issue yaftam: when there are not any commodities, the exception is not thrown
-//    @ParameterizedTest
-//    @ValueSource(strings = {"11", "sfs", "-21"})
-//    public void getCommoditiesByIdReturnsNOTExistingCommodityExceptionWhenCalledWithNoneExistingId(String id) throws Exception {
-//        String apiURL = "/commodities/{id}";
-//        mockMvc.perform(get(apiURL, id)).andExpect(result -> assertTrue(result.getResolvedException() instanceof NotExistentCommodity));
-//    }
+    @ParameterizedTest
+    @ValueSource(strings = {"11", "sfs", "-21"})
+    public void getCommoditiesByIdReturnsNOTExistingCommodityExceptionWhenCalledWithNoneExistingId(String id) throws Exception {
+        String apiURL = "/commodities/{id}";
+        mockMvc.perform(get(apiURL, id)).andExpect(result -> assertTrue(result.getResolvedException() instanceof NotExistentCommodity));
+    }
 
-//    private static String COMMODITY_ID = "1";
-//
+
 //    @ParameterizedTest
-//    @ValueSource(strings = {"0","1", "2", "", "221", "-32"})
-//    public void rateCommodityAddsValidRateByValidUsernameToExistingCommodityId(String rate) {
+//    @ValueSource(strings = {"0", "232", "sd"})
+//    public void rateCommodityReturnsNOTFOUNDStatusForRatingToANoneExistingCommodity(String id) throws Exception {
 //        Map<String, String> userRate = new HashMap<>();
 //        userRate.put("username", "rose");
-//        userRate.put("rate", "4");
+//        userRate.put("rate", "9");
 //        String apiUrl = "/commodities/{id}/rate";
-//        mockMvc.perform(post(apiUrl, COMMODITY_ID).param("username", userRate.get("username")).param("rate", userRate.get("rate")));
+//        mockMvc.perform(post(apiUrl, id)
+//                        .param("rate", userRate.get("rate"))
+//                .param("username", userRate.get("username")))
+//                .andExpect(status().is(404));
+//    }
+
 //
+//    @Test
+//    public void addCommodityCommentAddsCommentByUsernameToAnExistingCommodity() throws Exception {
+//        String apiUrl = "/commodities/{id}/comment" ;
+//
+//        Map<String, String> userComment = new HashMap<>();
+//        userComment.put("username", "rose");
+//        userComment.put("comment", "cool");
+//
+//        mockMvc.perform(post(apiUrl, EXISTING_COMMODITY_ID).param("username", userComment.get("username"))
+//                .param("comment", userComment.get("comment"))).andDo(MockMvcResultHandlers.print());
 //    }
 
     @Test
@@ -255,6 +260,62 @@ public class CommodityControllerTest {
         assertEquals(mockCommodityController.searchCommodities(input), new ResponseEntity<>(mockCommodityList, HttpStatus.OK));
     }
 
+    @Test
+    public void getSuggestedCommoditiesReturnsOKStatusForAnExistingCommodity() throws Exception{
+        String apiUrl = "/commodities/{id}/suggested";
+        mockMvc.perform(get(apiUrl, EXISTING_COMMODITY_ID)).
+        andDo(MockMvcResultHandlers.print())
+        .andExpect(status().isOk());
+    }
+
+    @Test
+    public void getSuggestedCommoditiesForId1ReturnsCommodity2OAsResponseBody() throws Exception{
+        String apiUrl = "/commodities/{id}/suggested";
+        mockMvc.perform(get(apiUrl, EXISTING_COMMODITY_ID)).
+                andDo(MockMvcResultHandlers.print())
+                .andExpect(content().string(commodityResponse2));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "sd", "78", "-211"})
+    public void getSuggestedCommoditiesReturnsNOTFOUNDStatusForANoneExistingCommodity(String noneExistentId) throws Exception{
+        String apiUrl = "/commodities/{id}/suggested";
+        mockMvc.perform(get(apiUrl, noneExistentId)).
+                andDo(MockMvcResultHandlers.print())
+                .andExpect(status().is(404));
+    }
+
+    @Test
+    public void getSuggestedCommoditiesReturnsEmptyStringForEmptyCommodityId() throws Exception{
+        String id = "";
+        String apiUrl = "/commodities/{id}/suggested";
+        mockMvc.perform(get(apiUrl, id)).
+                andDo(MockMvcResultHandlers.print())
+                .andExpect(content().string(""))
+                .andExpect(status().is(404));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"sd", "78", "-211"})
+    public void getSuggestedCommoditiesReturnsNullForANoneExistingCommodity(String noneExistentId) throws Exception{
+        String apiUrl = "/commodities/{id}/suggested";
+        mockMvc.perform(get(apiUrl, noneExistentId)).
+                andDo(MockMvcResultHandlers.print())
+                .andExpect(content().string("[]"))
+                .andExpect(status().is(404));
+    }
+
+    //issue yaftam: exception is not thrown
+//    @ParameterizedTest
+//    @ValueSource(strings = {"", "sd", "78", "-211"})
+//    public void getSuggestedCommoditiesThrowsNotExistingCommodityExceptionForANoneExistingCommodity(String noneExistentId) throws Exception{
+//        String apiUrl = "/commodities/{id}/suggested";
+//        mockMvc.perform(get(apiUrl, noneExistentId)).
+//                andDo(MockMvcResultHandlers.print())
+//                .andExpect(result -> {
+//                    assertTrue( result.getResolvedException() instanceof NotExistentCommodity);
+//                });
+//    }
 
 }
 

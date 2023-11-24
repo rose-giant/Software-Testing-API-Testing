@@ -111,6 +111,13 @@ public class CommoditiesController {
     public ResponseEntity<ArrayList<Commodity>> getSuggestedCommodities(@PathVariable String id) {
         try {
             Commodity commodity = baloot.getCommodityById(id);
+
+            //modified by rose-giant
+            NotExistentCommodity nec = new NotExistentCommodity();
+            if (commodity == null) {
+                throw nec;
+            }
+
             ArrayList<Commodity> suggestedCommodities = baloot.suggestSimilarCommodities(commodity);
             return new ResponseEntity<>(suggestedCommodities, HttpStatus.OK);
         } catch (NotExistentCommodity ignored) {
