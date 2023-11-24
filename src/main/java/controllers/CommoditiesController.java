@@ -77,8 +77,17 @@ public class CommoditiesController {
     }
 
     @GetMapping(value = "/commodities/{id}/comment")
-    public ResponseEntity<ArrayList<Comment>> getCommodityComment(@PathVariable String id) {
+    public ResponseEntity<ArrayList<Comment>> getCommodityComment(@PathVariable String id) throws NotExistentCommodity {
+
         ArrayList<Comment> comments = baloot.getCommentsForCommodity(Integer.parseInt(id));
+
+        //modified by rose-giant but does not work
+        Commodity commodity = new Commodity();
+        commodity = baloot.getCommodityById(id);
+        if (commodity == null) {
+            NotExistentCommodity notExistentCommodity = new NotExistentCommodity();
+            throw notExistentCommodity;
+        }
 
         return new ResponseEntity<>(comments, HttpStatus.OK);
     }
