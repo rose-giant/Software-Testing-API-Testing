@@ -82,14 +82,14 @@ public class UserControllerApiTest {
     @ValueSource(strings = {"/users/{id}/credit"})
     public void CreditAddedSuccessfullyWhenCreditIsValid(String apiUrl) throws Exception {
         Mockito.doNothing().when(mockUser).addCredit(anyFloat());
-        mockMvc.perform(post(apiUrl, mockUsername)).andExpect(status().isNotFound()); //isOk
+        mockMvc.perform(post(apiUrl, mockUsername)).andExpect(status().isOk()); //isOk
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"/users/{id}/credit"})
     public void InvalidCreditRangeWhenCreditIsNotInRange(String apiUrl) throws Exception {
         Mockito.doThrow(new InvalidCreditRange()).when(mockUser).addCredit(anyFloat());
-        mockMvc.perform(post(apiUrl, mockUsername)).andExpect(status().isNotFound()); //isBadRequest
+        mockMvc.perform(post(apiUrl, mockUsername)).andExpect(status().isBadRequest()); //isBadRequest
     }
 
     @ParameterizedTest
@@ -103,7 +103,7 @@ public class UserControllerApiTest {
     @ValueSource(strings = {"/users/{id}/credit"})
     public void NumberFormatExceptionWhenCreditIsNotValid(String apiUrl) throws Exception {
         Mockito.doThrow(new NumberFormatException()).when(mockUser).addCredit(anyFloat());
-        mockMvc.perform(post(apiUrl, mockUsername)).andExpect(status().isNotFound()); //isBadRequest
+        mockMvc.perform(post(apiUrl, mockUsername)).andExpect(status().isBadrequest()); //isBadRequest
     }
 
 }
