@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -166,32 +167,89 @@ public class CommodityControllerTest {
         mockMvc.perform(get(apiURL, id)).andExpect(result -> assertTrue(result.getResolvedException() instanceof NotExistentCommodity));
     }
 
+    //Bad Request response for a valid request??!
+    @ParameterizedTest
+    @ValueSource(strings = {"0", "9", "3.44"})
+    public void rateCommodityReturnsOKStatusAndAddsValidRateToValidCommodityByValidUsername(String validRate) throws Exception{
+        Map<String, String> userRate = new HashMap<>();
+        userRate.put("username", "rose");
+        userRate.put("rate", "9");
+        String apiUrl = "/commodities/{id}/rate";
+        mockMvc.perform(post(apiUrl, validRate)
+                        .param("rate", userRate.get("rate"))
+                        .param("username", userRate.get("username")))
+                .andExpect(status().is(200));
+    }
 
-//    @ParameterizedTest
-//    @ValueSource(strings = {"0", "232", "sd"})
-//    public void rateCommodityReturnsNOTFOUNDStatusForRatingToANoneExistingCommodity(String id) throws Exception {
-//        Map<String, String> userRate = new HashMap<>();
-//        userRate.put("username", "rose");
-//        userRate.put("rate", "9");
-//        String apiUrl = "/commodities/{id}/rate";
-//        mockMvc.perform(post(apiUrl, id)
-//                        .param("rate", userRate.get("rate"))
-//                .param("username", userRate.get("username")))
-//                .andExpect(status().is(404));
-//    }
+    @ParameterizedTest
+    @ValueSource(strings = {"50.3", "-232", "-43.32"})
+    public void rateCommodityReturnsBADREQUESTStatusForInValidRateToValidCommodityByValidUsername(String validRate) throws Exception{
+        Map<String, String> userRate = new HashMap<>();
+        userRate.put("username", "rose");
+        userRate.put("rate", "9");
+        String apiUrl = "/commodities/{id}/rate";
+        mockMvc.perform(post(apiUrl, validRate)
+                        .param("rate", userRate.get("rate"))
+                        .param("username", userRate.get("username")))
+                .andExpect(status().is(400));
+    }
 
-//
-//    @Test
-//    public void addCommodityCommentAddsCommentByUsernameToAnExistingCommodity() throws Exception {
-//        String apiUrl = "/commodities/{id}/comment" ;
-//
-//        Map<String, String> userComment = new HashMap<>();
-//        userComment.put("username", "rose");
-//        userComment.put("comment", "cool");
-//
-//        mockMvc.perform(post(apiUrl, EXISTING_COMMODITY_ID).param("username", userComment.get("username"))
-//                .param("comment", userComment.get("comment"))).andDo(MockMvcResultHandlers.print());
-//    }
+    //it is preferred to return 404 status for none Existing commodity than 400
+    @ParameterizedTest
+    @ValueSource(strings = {"0", "232", "sd"})
+    public void rateCommodityReturnsNOTFOUNDStatusForRatingToANoneExistingCommodity(String id) throws Exception {
+        Map<String, String> userRate = new HashMap<>();
+        userRate.put("username", "rose");
+        userRate.put("rate", "9");
+        String apiUrl = "/commodities/{id}/rate";
+        mockMvc.perform(post(apiUrl, id)
+                        .param("rate", userRate.get("rate"))
+                .param("username", userRate.get("username")))
+                .andExpect(status().is(400));
+    }
+
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "dsd", "0df9", "-23", "-ds32"})
+    public void rateCommodityReturnsBADREQUESTForNoneNumberFormatRate(String nanValue) throws Exception {
+        Map<String, String> userRate = new HashMap<>();
+        userRate.put("username", "rose");
+        userRate.put("rate", nanValue);
+        String id = "0";
+        String apiUrl = "/commodities/{id}/rate";
+        mockMvc.perform(post(apiUrl, id).param("rate", userRate.get("rate")).param("username", userRate.get("username")))
+                .andExpect(status().is(400));
+    }
+
+
+    //comment is not added to an existing commodity by a valid user
+    @Test
+    public void addCommodityCommentAddsCommentByUsernameToAnExistingCommodity() throws Exception {
+        String apiUrl = "/commodities/{id}/comment" ;
+
+        Map<String, String> userComment = new HashMap<>();
+        userComment.put("username", "rose");
+        userComment.put("comment", "cool");
+
+        mockMvc.perform(post(apiUrl, EXISTING_COMMODITY_ID).param("username", userComment.get("username"))
+                .param("comment", userComment.get("comment")))
+                .andExpect(status().isOk());
+    }
+
+    //Status code is returned but the exception is not thrown
+    @ParameterizedTest
+    @ValueSource(strings = {"", "dsfsdfw", "234234fsfsf", ";[-"})
+    public void addCommodityCommentReturnsNoneCommodityExceptionForNullUser(String notExistingUsername) throws Exception{
+        Map<String, String> userComment = new HashMap<>();
+        userComment.put("comment", "shit!");
+        userComment.put("username", notExistingUsername);
+        String apiUrl = "/commodities/{id}/comment";
+        String id = "0";
+
+        mockMvc.perform(post(apiUrl, id)).
+                andExpect(result -> {assertTrue(result.getResolvedException() instanceof NotExistentCommodity);})
+                .andExpect(status().is(400));
+    }
 
     @Test
     public void getCommodityCommentReturnsCommentsForExistingCommodity() throws Exception {
@@ -211,15 +269,15 @@ public class CommodityControllerTest {
 
 
     //issue yaftam: status 200 is returned when the is does not exist
-//    @Test
-//    public void getCommodityCommentReturnsNOTFOUNDStatusForNoneExistingCommodity() throws Exception {
-//        String apiUrl = "/commodities/{id}/comment";
-//        String NoneExistingCommodityId = "311";
-//        mockCommentList.add(mockComment);
-//        NotExistentCommodity nec = new NotExistentCommodity();
-//
-//        mockMvc.perform(get(apiUrl, NoneExistingCommodityId)).andExpect(result -> assertEquals(nec.getMessage(), result.getResolvedException()));
-//    }
+    @Test
+    public void getCommodityCommentReturnsNOTFOUNDStatusForNoneExistingCommodity() throws Exception {
+        String apiUrl = "/commodities/{id}/comment";
+        String NoneExistingCommodityId = "311";
+        mockCommentList.add(mockComment);
+        NotExistentCommodity nec = new NotExistentCommodity();
+
+        mockMvc.perform(get(apiUrl, NoneExistingCommodityId)).andExpect(result -> assertEquals(nec.getMessage(), result.getResolvedException()));
+    }
 
     @ParameterizedTest
     @ValueSource(strings = {"", "sdfsdfsd", "903i393"})
@@ -306,16 +364,16 @@ public class CommodityControllerTest {
     }
 
     //issue yaftam: exception is not thrown
-//    @ParameterizedTest
-//    @ValueSource(strings = {"", "sd", "78", "-211"})
-//    public void getSuggestedCommoditiesThrowsNotExistingCommodityExceptionForANoneExistingCommodity(String noneExistentId) throws Exception{
-//        String apiUrl = "/commodities/{id}/suggested";
-//        mockMvc.perform(get(apiUrl, noneExistentId)).
-//                andDo(MockMvcResultHandlers.print())
-//                .andExpect(result -> {
-//                    assertTrue( result.getResolvedException() instanceof NotExistentCommodity);
-//                });
-//    }
+    @ParameterizedTest
+    @ValueSource(strings = {"", "sd", "78", "-211"})
+    public void getSuggestedCommoditiesThrowsNotExistingCommodityExceptionForANoneExistingCommodity(String noneExistentId) throws Exception{
+        String apiUrl = "/commodities/{id}/suggested";
+        mockMvc.perform(get(apiUrl, noneExistentId)).
+                andDo(MockMvcResultHandlers.print())
+                .andExpect(result -> {
+                    assertTrue( result.getResolvedException() instanceof NotExistentCommodity);
+                });
+    }
 
 }
 

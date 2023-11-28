@@ -47,6 +47,12 @@ public class CommoditiesController {
     public ResponseEntity<String> rateCommodity(@PathVariable String id, @RequestBody Map<String, String> input) {
         try {
             int rate = Integer.parseInt(input.get("rate"));
+
+            //modified by rose-giant
+            if(rate > 10 || rate < 0) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
             String username = input.get("username");
             Commodity commodity = baloot.getCommodityById(id);
             commodity.addRate(username, rate);
